@@ -1,0 +1,64 @@
+
+#load data
+#split data intro train and test sets
+#build the network
+#compile network
+#train network
+
+
+import json
+import numpy as np
+from sklearn.model_selection import train_test_split
+import tensorflow as tf
+
+
+
+DATASET_PATH = r"C:\Users\kvk19\Projects\PeppaHonkRemover\ProcessedSamples.json"
+
+
+#load data
+
+def load_data(dataset_path):
+    with open(dataset_path, "r") as fp:
+        data = json.load(fp)
+
+    #convert lists into np arrays
+    #the sample data is of different lengths, giving different numbers of MFCC coefficients/array lengths, which I need to work on
+    inputs = np.array(data["mfcc"])
+    targets = np.array(data["labels"])
+
+    return inputs,targets
+
+
+if __name__ == "__main__":
+    inputs, targets = load_data(DATASET_PATH)
+
+    #split data intro train and test sets
+    inputs_train, inputs_test, targets_train, targets_test = train_test_split(inputs, targets, test_size=0.3)
+
+    #build the network
+    model = tf.keras.Sequential([
+        #input layer
+        tf.keras.layers.Flatten(inputs_shape=(inputs.shape[1], inputs.shape[2])),
+        #first later
+        tf.keras.layers.Dense(512, activation= "relu"),
+        #second later
+        tf.keras.layers.Dense(256, activation= "relu"),
+        #third later
+        tf.keras.layers.Dense(64, activation= "relu"),
+        #output later
+        tf.keras.layers.Dense(10, activation = "softmax")
+        #softmax sort of normalizes the (10) output categories, helps when classifying, you pick the one with the highest value
+     ])
+
+    #compile network
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001) #ADAM is like gradient descent
+    model.compile(optimizer=optimizer, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+    model.summary()
+
+    #train network
+    model.fit(inputs_train, targets_train, validation_data= (inputs_test, targets_test), epochs=50, batch_size=32) 
+    #batch size is related to how you perform gradient descent back propogation
+    # with batch_size = 1 -> calculating gradient on one sample, per sample basis implementation
+    # full batch -> calculates gradient on whole data set (too much data set)
+    # mini batch -> calculates gradient on subset of data set, like batch_size = 32
