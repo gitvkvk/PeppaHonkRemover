@@ -3,6 +3,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#removing large files and samples from tracking
+audiofileconverted.wav
+ProcessedSamples.json
+ProcessedSamples2.json
+
 # C extensions
 *.so
 
@@ -109,6 +114,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+SampleCopy/
+SamplesOriginal/
+PreppedSamples/
 
 # Spyder project settings
 .spyderproject

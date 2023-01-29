@@ -1,60 +1,74 @@
-
-#this program loops through samples of Peppa pig honking and extracts characteristic data 
-#this data is exported to json, to then be fed into a machine learning program to teach it to detect honking audio events
-
-#still need to split samples into regular lengths and include non honking samples in the dataset
-
 import os
 import librosa
 import json
+import math
 
 
+dataset_path = r"C:\Users\kvk19\Projects\PeppaHonkRemover\SampleCopy"
+json_path = r"C:\Users\kvk19\Projects\PeppaHonkRemover\ProcessedSamples2.json"
 
-dataset_path = r"C:\Users\kvk19\Projects\PeppaHonkRemover\HonkSamples"
-json_path = r"C:\Users\kvk19\Projects\PeppaHonkRemover\ProcessedSamples.json"
+SAMPLE_RATE = 44100 
+DURATION = 0.027
+SAMPLES_PER_HONKSAMPLE = SAMPLE_RATE * DURATION
 
-
-SAMPLE_RATE = 22050
 n_fft = 2048
 n_mfcc = 13
 hop_length = 512
 
 
-for i, (roots, dirs, files) in enumerate(os.walk(dataset_path)):
-    #print (i)
-    #print (roots)
-    #print (dirs)
-    #print (files)
-    
+def save_mfcc(dataset_path, json_path, n_mfcc = 13, n_fft = 2048, hop_length = 512, num_segments = 5 ):
+
+    samples_per_segment = int(SAMPLES_PER_HONKSAMPLE / num_segments)
+    num_mfcc_vectors_per_segment = math.ceil(samples_per_segment / hop_length)
     data = {
+        "mapping" : [],
         "mfcc" : [],
         "labels" : []
         }
 
-    for file in files:
-        #print ("file = %s" % file)
-        file_path = os.path.join(dataset_path, file)
-        #print(file_path)
+    for i, (roots, dirs, files) in enumerate(os.walk(dataset_path)):
+        #print (i)
+        #print (roots)
+        #print (dirs)
+        #print (files)
 
-        signal, sr = librosa.load(file_path, sr= SAMPLE_RATE) # load the file
-        #print(signal, sr)
+        if roots is not dataset_path:
+            roots_components = roots.split("\\")
+            semantic_label = roots_components[-1]
+            data["mapping"].append(semantic_label)
+            print("\nProcessessing {}".format(semantic_label))
+            print(data)
+            print("\n")
 
-        mfcc = librosa.feature.mfcc(y = signal, sr = sr, n_fft= n_fft, n_mfcc = n_mfcc, hop_length=hop_length)
-        #print(mfcc)
-        mfcc = mfcc.T
-        print(type(mfcc))
-        print(type(mfcc.tolist())) # error from missing the () at the end of tolist method, making it an object in memory rather than a list
+            for file in files:
+                print ("file = %s" % file)
+                file_path = os.path.join(roots, file)
+                print(file_path)
 
-            #check segment for correct length (therefore equal number of MFCCs)
+                print("\n")
 
-        data["mfcc"].append(mfcc.tolist()) #cast numpy array to a list
+                signal, sr = librosa.load(file_path , sr= SAMPLE_RATE) # load the file
+                print(signal, sr)
 
-#the casting to list, saves it as a built in method object in the dictionary. This is not dumpable to json
+                mfcc = librosa.feature.mfcc(y = signal, sr = sr, n_fft= n_fft, n_mfcc = n_mfcc, hop_length=hop_length)
+                #print(mfcc)
+                mfcc = mfcc.T
+                print(type(mfcc))
+                print(type(mfcc.tolist())) # error from missing the () at the end of tolist method, making it an object in memory rather than a list
 
-        data["labels"].append(i) 
-        #print(type(data))
-        print(data)
+                    #check segment for correct length (therefore equal number of MFCCs)
 
-        with open(json_path, "w") as fp:
-            json.dump(data, fp, indent = None)
-        
+                data["mfcc"].append(mfcc.tolist()) #cast numpy array to a list
+
+        #the casting to list, saves it as a built in method object in the dictionary. This is not dumpable to json
+
+                data["labels"].append(i) 
+                #print(type(data))
+                print(data)
+
+                with open(json_path, "w") as fp:
+                    json.dump(data, fp, indent = None)
+                
+
+if __name__ == "__main__":
+    save_mfcc(dataset_path, json_path)
