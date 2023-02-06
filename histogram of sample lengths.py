@@ -23,8 +23,8 @@ print("\n")
 print(data[0])
 print( sum(data)/len(data))
 
-#plt.hist(data, 100)
-#plt.show()
+plt.hist(data, 100)
+plt.show()
 
 
 #smallest sample size is 0.08
@@ -36,7 +36,7 @@ print( sum(data)/len(data))
 remainders = []
 
 for points in data:
-    g = points % 0.027
+    g = points % 0.08
     remainders.append(g)
 
 print("\n")

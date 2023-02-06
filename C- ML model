@@ -13,7 +13,7 @@ import tensorflow as tf
 
 
 
-DATASET_PATH = r"C:\Users\kvk19\Projects\PeppaHonkRemover\ProcessedSamples.json"
+DATASET_PATH = r"C:\Users\kvk19\Projects\PeppaHonkRemover\ProcessedSamples2.json"
 
 
 #load data
@@ -35,29 +35,25 @@ if __name__ == "__main__":
 
     #split data intro train and test sets
     inputs_train, inputs_test, targets_train, targets_test = train_test_split(inputs, targets, test_size=0.3)
+    
+    print(inputs.shape)
 
     #build the network
     model = tf.keras.Sequential([
-        #input layer
-        tf.keras.layers.Flatten(inputs_shape=(inputs.shape[1], inputs.shape[2])),
-        #first later
+        tf.keras.layers.Flatten(input_shape=(inputs.shape[1], inputs.shape[2])), #input layer
         tf.keras.layers.Dense(512, activation= "relu"),
-        #second later
         tf.keras.layers.Dense(256, activation= "relu"),
-        #third later
         tf.keras.layers.Dense(64, activation= "relu"),
-        #output later
-        tf.keras.layers.Dense(10, activation = "softmax")
-        #softmax sort of normalizes the (10) output categories, helps when classifying, you pick the one with the highest value
+        tf.keras.layers.Dense(1, activation= "sigmoid") #binary classification output layer
      ])
 
-    #compile network
+    #compile and train network
     optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001) #ADAM is like gradient descent
-    model.compile(optimizer=optimizer, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+    model.compile(optimizer=optimizer, loss="binary_crossentropy", metrics=["accuracy"])
     model.summary()
-
-    #train network
     model.fit(inputs_train, targets_train, validation_data= (inputs_test, targets_test), epochs=50, batch_size=32) 
+    #full batch change
+
     #batch size is related to how you perform gradient descent back propogation
     # with batch_size = 1 -> calculating gradient on one sample, per sample basis implementation
     # full batch -> calculates gradient on whole data set (too much data set)

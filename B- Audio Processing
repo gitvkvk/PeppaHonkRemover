@@ -7,8 +7,8 @@ import math
 dataset_path = r"C:\Users\kvk19\Projects\PeppaHonkRemover\SampleCopy"
 json_path = r"C:\Users\kvk19\Projects\PeppaHonkRemover\ProcessedSamples2.json"
 
-SAMPLE_RATE = 44100 
-DURATION = 0.027
+SAMPLE_RATE = 44100 # vs 22050 Hz test
+DURATION = 0.08 #extracted length size wanted
 SAMPLES_PER_HONKSAMPLE = SAMPLE_RATE * DURATION
 
 n_fft = 2048
@@ -19,7 +19,8 @@ hop_length = 512
 def save_mfcc(dataset_path, json_path, n_mfcc = 13, n_fft = 2048, hop_length = 512, num_segments = 5 ):
 
     samples_per_segment = int(SAMPLES_PER_HONKSAMPLE / num_segments)
-    num_mfcc_vectors_per_segment = math.ceil(samples_per_segment / hop_length)
+    expected_num_mfcc_vectors_per_segment = math.ceil(samples_per_segment / hop_length)
+
     data = {
         "mapping" : [],
         "mfcc" : [],
@@ -27,17 +28,18 @@ def save_mfcc(dataset_path, json_path, n_mfcc = 13, n_fft = 2048, hop_length = 5
         }
 
     for i, (roots, dirs, files) in enumerate(os.walk(dataset_path)):
-        #print (i)
-        #print (roots)
-        #print (dirs)
-        #print (files)
+        print (i)
+        print (roots)
+        print (dirs)
+        print (files)
 
         if roots is not dataset_path:
-            roots_components = roots.split("\\")
+            roots_components = roots.split("\\") 
             semantic_label = roots_components[-1]
             data["mapping"].append(semantic_label)
-            print("\nProcessessing {}".format(semantic_label))
             print(data)
+            print("\nProcessessing {}".format(semantic_label))
+            #print(data)
             print("\n")
 
             for file in files:
@@ -48,26 +50,43 @@ def save_mfcc(dataset_path, json_path, n_mfcc = 13, n_fft = 2048, hop_length = 5
                 print("\n")
 
                 signal, sr = librosa.load(file_path , sr= SAMPLE_RATE) # load the file
-                print(signal, sr)
+                #print(signal, sr)
+
+                #Adding A to this
+
+                # for file in files:
+                #     file_path = os.path.join(roots, file)
+                    
+                #     sample_duration = audioread.audio_open(file_path)
+
+                #     num_divisions = sample_duration.duration / EXTRACTED_LENGTH
+                #     num_divisions = math.floor(num_divisions)
+
+                #     sound = AudioSegment.from_wav(file_path)
+
+                #     for i in range(num_divisions):
+                #             print(i)
+                #             #note i starts at 0
+                #             start_slice = 1000 * EXTRACTED_LENGTH * i
+                #             finish_slice = start_slice + 1000 * EXTRACTED_LENGTH
+
+                #             wavs = sound[start_slice:finish_slice]
+
+
 
                 mfcc = librosa.feature.mfcc(y = signal, sr = sr, n_fft= n_fft, n_mfcc = n_mfcc, hop_length=hop_length)
                 #print(mfcc)
                 mfcc = mfcc.T
-                print(type(mfcc))
-                print(type(mfcc.tolist())) # error from missing the () at the end of tolist method, making it an object in memory rather than a list
-
-                    #check segment for correct length (therefore equal number of MFCCs)
-
+                #print(type(mfcc))
+                #print(type(mfcc.tolist())) 
+        #check segment for correct length (therefore equal number of MFCCs)
                 data["mfcc"].append(mfcc.tolist()) #cast numpy array to a list
-
         #the casting to list, saves it as a built in method object in the dictionary. This is not dumpable to json
-
-                data["labels"].append(i) 
+                data["labels"].append(i-1)
                 #print(type(data))
-                print(data)
-
+                #print(data)
                 with open(json_path, "w") as fp:
-                    json.dump(data, fp, indent = None)
+                    json.dump(data, fp, indent = None) #can use 4 on indent
                 
 
 if __name__ == "__main__":
